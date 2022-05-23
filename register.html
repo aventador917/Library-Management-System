@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" type="text/css" href="css/elementUI.css" />
+    <script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/axios.min.js" type="text/javascript"></script>
+    <script src="js/elementUI.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="register">
+    <el-form  style="width: 30%;margin: auto;position: absolute;top:30%;left: 35%" :label-position="labelPosition" label-width="80px" >
+        <el-tag type="success" style="width: 100%;text-align: center;font-size: 20px;margin-bottom: 20px">REGISTER</el-tag>
+        <el-form-item label="username:">
+            <el-input v-model="username"></el-input>
+        </el-form-item>
+        <el-form-item label="password:">
+            <el-input type="password" v-model="password"></el-input>
+        </el-form-item>
+        <el-form-item label="email:">
+            <el-input  v-model="mailbox"></el-input>
+        </el-form-item>
+        <el-form-item label="gender:">
+            <el-select v-model="gender" placeholder="Please select" style="width: 100%">
+                <el-option
+                        v-for="item in options"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value">
+                </el-option>
+            </el-select>
+        </el-form-item>
+        <el-button type="success" style="width: 100%" @click="register()">register</el-button>
+    </el-form>
+</div>
+</body>
+<script type="text/javascript">
+    new Vue({
+        el: '#register',
+        data: {
+            mailbox:"",
+            labelPosition: 'right',
+            username: '',
+            password: '',
+            gender:'',
+            options:[{
+                value: '0',
+                label: 'male'
+            },{
+                value: '1',
+                label: 'female'
+            }]
+        },
+        methods: {
+            register() {
+                axios({
+                    method:"get",
+                    url:"http://localhost/registerUser.php",
+                    params:{
+                        username: this.username,
+                        password: this.password,
+                        gender: this.gender,
+                        mailbox:this.mailbox,
+                        IsAtive: "1"
+                    }
+                }).then(res=>{
+                    if (res.data=="true") {
+                        this.$message({
+                            message: 'successful',
+                            type: 'success'
+                        });
+                        setTimeout(()=>{
+                            window.location.href="index.html"
+                        },1000)
+                    }else{
+                        this.$message.error('failed');
+                    }
+                })
+            }
+        }
+    })
+</script>
+</html>

@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin</title>
+    <link rel="stylesheet" type="text/css" href="css/elementUI.css" />
+    <script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/axios.min.js" type="text/javascript"></script>
+    <script src="js/elementUI.js" type="text/javascript"></script>
+</head>
+<body style="background-image: url('./img/backgroud2.jpg');background-repeat:no-repeat;background-size:100% 100%;">
+<div id="admin">
+    <el-container style="height: 800px; border: 1px solid #eee">
+        <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
+            <el-menu :default-openeds="['1', '3']">
+                <el-submenu index="1">
+                    <div slot="title" @click="library()"><i class="el-icon-s-grid"></i>Library management</div>
+                </el-submenu>
+                <el-submenu index="2">
+                    <div slot="title" @click="users()"><i class="el-icon-user-solid"></i>User management</div>
+                </el-submenu>
+                <el-submenu index="3">
+                    <div slot="title" @click="record()"><i class="el-icon-s-unfold"></i>User record</div>
+                </el-submenu>
+                <el-submenu index="4">
+                    <div slot="title" @click="Customer()"><i class="el-icon-more"></i>Customer Message</div>
+                </el-submenu>
+                <el-submenu>
+                    <div slot="title" @click="bookType()"><i class="el-icon-s-data"></i>bookType</div>
+                </el-submenu>
+            </el-menu>
+        </el-aside>
+        <el-container>
+            <el-header style="text-align: right; font-size: 12px">
+                <el-tag>Administrator name:{{adminName}}</el-tag>
+            </el-header>
+            <el-main>
+                <div id="Customer" style="display: none;">
+                    <el-table
+                            :data="Customers"
+                            border
+                            style="width: 100%">
+                        <el-table-column
+                                prop="name"
+                                label="username">
+                        </el-table-column>
+                        <el-table-column
+                                prop="eamil"
+                                label="Email">
+                        </el-table-column>
+                        <el-table-column
+                                prop="msg"
+                                label="msg">
+                        </el-table-column>
+                    </el-table>
+                </div>
+                <div id="library" style="display: none">
+                    <el-button type="success" @click="dialogVisible3=true">add book type</el-button>
+                    <el-dialog title="book type" :visible.sync="dialogVisible3">
+                        <el-form>
+                            <el-form-item label="book type:">
+                                <el-input v-model="typebook"></el-input>
+                            </el-form-item>
+                        </el-form>
+                        <div slot="footer" class="dialog-footer">
+                            <el-button @click="dialogVisible3 = false">Cancel</el-button>
+                            <el-button type="primary" @click="oktype()">ok</el-button>
+                        </div>
+                    </el-dialog>
+                    <el-button type="success" @click="addbook()">add book</el-button>
+                    <el-dialog title="book" :visible.sync="dialogVisible2">
+                        <el-form >
+                            <el-form-item label="name:">
+                                <el-input v-model="name"></el-input>
+                            </el-form-item>
+                            <el-form-item label="author:">
+                                <el-input v-model="author"></el-input>
+                            </el-form-item>
+                            <el-form-item label="publishDate:">
+                                <el-input v-model="publishDate"></el-input>
+                            </el-form-item>
+                            <el-form-item label="isbn:">
+                                <el-input v-model="isbn"></el-input>
+                            </el-form-item>
+                            <el-form-item label="amount:">
+                                <el-input v-model="amount"></el-input>
+                            </el-form-item>
+                            <el-form-item label="summary:">
+                                <el-input v-model="summary"></el-input>
+                            </el-form-item>
+                            <el-form-item label="picture:">
+                                <el-upload
+                                        :on-change="getFile"
+                                        class="upload-demo"
+                                        action=""
+                                        :auto-upload="false"
+                                        :on-preview="handlePreview"
+                                        :on-remove="handleRemove"
+                                        multiple
+                                        :limit="1"
+                                        :file-list="fileList">
+                                    <el-button size="small" type="primary">upload</el-button>
+                                </el-upload>
+                            </el-form-item>
+                            <el-form-item label="type:">
+                                <el-select v-model="type" no-data-text="no date" placeholder="Please select" style="width: 100%">
+                                    <el-option
+                                            v-for="item in options1"
+                                            :key="item.value"
+                                            :label="item.label"
+                                            :value="item.value">
+                                    </el-option>
+                                </el-select>
+                            </el-form-item>
+                        </el-form>
+                        <div slot="footer" class="dialog-footer">
+                            <el-button @click="dialogVisible2 = false">Cancel</el-button>
+                            <el-button type="primary" @click="book()">ok</el-button>
+                        </div>
+                    </el-dialog>
+                    <el-table
+                            :data="booklist"
+                            border
+                            style="width: 100%">
+                        <el-table-column
+                                prop="name"
+                                label="Book Name" width="80px">
+                        </el-table-column>
+                        <el-table-column
+                                prop="url"
+                                label="" >
+                            <template slot-scope="scope">
+                                <el-image
+                                        style="width: 100px; height: 100px"
+                                        :src="scope.row.url"></el-image>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                                prop="author"
+                                label="author" width="80px">
+                        </el-table-column>
+                        <el-table-column
+                                prop="publish_date"
+                                label="publish_date" width="80px">
+                        </el-table-column>
+                        <el-table-column
+                                prop="isbn"
+                                label="isbn" width="80px">
+                        </el-table-column>
+                        <el-table-column
+                                prop="amount"
+                                label="amount" width="100px">
+                        </el-table-column>
+                        <el-table-column
+                                prop="summary"
+                                label="summary" width="100px">
+                        </el-table-column>
+                        <el-table-column
+                                prop="operation"
+                                label="operation">
+                            <template slot-scope="scope">
+                                <el-button  style="float: left" type="success" @click.native.prevent="deletedbook(scope.row.id)">delete</el-button>
+                                <el-button   style="float: left" type="warning" @click.native.prevent="update(scope.row.id)">update</el-button>
+                                <el-dialog title="update" :visible.sync="dialogVisible4">
+                                    <el-form >
+                                        <el-form-item label="name:">
+                                            <el-input v-model="name"></el-input>
+                                        </el-form-item>
+                                        <el-form-item label="author:">
+                                            <el-input v-model="author"></el-input>
+                                        </el-form-item>
+                                        <el-form-item label="publishDate:">
+                                            <el-input v-model="publishDates"></el-input>
+                                        </el-form-item>
+                                        <el-form-item label="isbn:">
+                                            <el-input v-model="isbn"></el-input>
+                                        </el-form-item>
+                                        <el-form-item label="amount:">
+                                            <el-input v-model="amount"></el-input>
+                                        </el-form-item>
+                                        <el-form-item label="summary:">
+                                            <el-input v-model="summary"></el-input>
+                                        </el-form-item>
+                                        <el-form-item label="picture:">
+                                            <el-upload
+                                                    :on-change="getFile"
+                                                    class="upload-demo"
+                                                    action=""
+                                                    :auto-upload="false"
+                                                    :on-preview="handlePreview"
+                                                    :on-remove="handleRemove"
+                                                    multiple
+                                                    :limit="1"
+                                                    :file-list="fileList">
+                                                <el-button size="small" type="primary">upload</el-button>
+                                            </el-upload>
+                                        </el-form-item>
+                                        <el-form-item label="type:">
+                                            <el-select v-model="type" no-data-text="no date" placeholder="Please select" style="width: 100%">
+                                                <el-option
+                                                        v-for="item in options1"
+                                                        :key="item.value"
+                                                        :label="item.label"
+                                                        :value="item.label">
+                                                </el-option>
+                                            </el-select>
+                                        </el-form-item>
+                                    </el-form>
+                                    <div slot="footer" class="dialog-footer">
+                                        <el-button @click="dialogVisible4 = false">Cancel</el-button>
+                                        <el-button type="primary" @click="updatess()">ok</el-button>
+                                    </div>
+                                </el-dialog>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                    <el-pagination
+                            background
+                            @current-change="changebook"
+                            layout="prev, pager, next"
+                            :total="1000">
+                    </el-pagination>
+                </div>
+                <div id="user1" style="display: none">
+                    <el-button type="success" @click="dialogVisible=true">add user</el-button>
+                    <el-dialog title="user" :visible.sync="dialogVisible">
+                        <el-form >
+                            <el-form-item label="username:">
+                                <el-input v-model="username"></el-input>
+                            </el-form-item>
+                            <el-form-item label="password:">
+                                <el-input type="password" v-model="password"></el-input>
+                            </el-form-item>
+                            <el-form-item label="gender:">
+                                <el-select no-data-text="no date" v-model="gender" placeholder="Please select"  style="width: 100%">
+                                    <el-option
+                                            v-for="item in options"
+                                            :key="item.value"
+                                            :label="item.label"
+                                            :value="item.value">
+                                    </el-option>
+                                </el-select>
+                            </el-form-item>
+                        </el-form>
+                        <div slot="footer" class="dialog-footer">
+                            <el-button @click="dialogVisible = false">Cancel</el-button>
+                            <el-button type="primary" @click="ok()">ok</el-button>
+                        </div>
+                    </el-dialog>
+                    <el-table
+                            :data="tableData"
+                            empty-text="No data"
+                            border
+                            style="width: 100%">
+                        <el-table-column
+                                prop="id"
+                                label="id" width="80px">
+                        </el-table-column>
+                        <el-table-column
+                                prop="name"
+                                label="user name">
+                        </el-table-column>
+                        <el-table-column
+                                prop="password"
+                                label="password">
+                        </el-table-column>
+                        <el-table-column
+                                prop="gender"
+                                label="gender">
+                        </el-table-column>
+                        <el-table-column
+                                prop="eamil"
+                                label="Email">
+                        </el-table-column>
+                        <el-table-column
+                                prop="create_at"
+                                label="create_at" width="100px">
+                        </el-table-column>
+                        <el-table-column
+                                prop="operation"
+                                label="operation">
+                            <template slot-scope="scope">
+                                <el-button type="success" @click.native.prevent="deleted(scope.row.id)">delete</el-button>
+                                <el-button type="warning" @click.native.prevent="updates(scope.row.id)">update</el-button>
+                                <el-dialog title="update" :visible.sync="dialogVisible1">
+                                    <el-form>
+                                        <el-form-item label="password:">
+                                            <el-input type="password" v-model="password"></el-input>
+                                        </el-form-item>
+                                        <el-form-item label="email:">
+                                            <el-input v-model="email"></el-input>
+                                        </el-form-item>
+                                        <el-form-item label="gender:">
+                                            <el-select v-model="gender" placeholder="Please select" style="width: 100%">
+                                                <el-option
+                                                        v-for="item in options"
+                                                        :key="item.value"
+                                                        :label="item.label"
+                                                        :value="item.value">
+                                                </el-option>
+                                            </el-select>
+                                        </el-form-item>
+
+                                    </el-form>
+                                    <div slot="footer" class="dialog-footer">
+                                        <el-button @click="dialogVisible1 = false">Cancel</el-button>
+                                        <el-button type="primary" @click="ok1(scope.row.id)">ok</el-button>
+                                    </div>
+                                </el-dialog>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                    <el-pagination
+                            background
+                            @current-change="change"
+                            layout="prev, pager, next"
+                            :total="total">
+                    </el-pagination>
+                </div>
+                <div id="record" style="display:none;">
+                    <el-button type="primary" @click="Longest">Longest borrowing</el-button>
+                    <el-button type="primary" @click="Shortest">Shortest  borrowing</el-button>
+                    <el-table
+                            empty-text="no date"
+                            :data="booklists"
+                            border
+                            style="width: 100%">
+                        <el-table-column
+                                prop="name"
+                                label="book name" width="300px">
+                        </el-table-column>
+                        <el-table-column
+                                prop="url"
+                                label="" >
+                            <template slot-scope="scope">
+                                <el-image
+                                        style="width: 100px; height: 100px"
+                                        :src="scope.row.url"></el-image>
+                            </template>
+                        </el-table-column>
+                        <el-table-column
+                                prop="author"
+                                label="author" width="80px">
+                        </el-table-column>
+                        <el-table-column
+                                prop="publish_date"
+                                label="publish_date" width="80px">
+                        </el-table-column>
+                        <el-table-column
+                                prop="isbn"
+                                label="isbn" width="80px">
+                        </el-table-column>
+                        <el-table-column
+                                prop="borrowBook"
+                                label="borrowBook" width="100px">
+                        </el-table-column>
+                        <el-table-column
+                                prop="summary"
+                                label="summary" width="100px">
+                        </el-table-column>
+                        <el-table-column
+                                prop="type"
+                                label="type">
+                        </el-table-column>
+                        <el-table-column
+                                prop="userName"
+                                label="user name"
+                        >
+                        </el-table-column>
+                        <el-table-column
+                                prop="operation"
+                                label="operation">
+                            <template slot-scope="scope">
+                                <el-button size="mini" style="float: left" type="success" @click.native.prevent="returns(scope.row.transactionsId,scope.row.number)">Return</el-button>
+                                <el-dialog title="" :visible.sync="dialogVisible5">
+                                    <el-form>
+                                        <el-form-item label="Please enter the number of books to return:">
+                                            <el-input v-model="numbers"></el-input>
+                                        </el-form-item>
+                                    </el-form>
+                                    <div slot="footer" class="dialog-footer">
+                                        <el-button @click="dialogVisible5 = false">Cancel</el-button>
+                                        <el-button type="primary" @click="Return()">ok</el-button>
+                                    </div>
+                                </el-dialog>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+                <div id="bookType">
+                    <el-table
+                            empty-text="no date"
+                            :data="booktypes"
+                            border
+                            style="width: 100%">
+                        <el-table-column
+                                prop="id"
+                                label="Type ID">
+                        </el-table-column>
+                        <el-table-column
+                                prop="name"
+                                label="Type">
+                        </el-table-column>
+                        <el-table-column
+                                prop="operation"
+                                label="operation">
+                            <template slot-scope="scope">
+                                <el-button size="mini" style="float: left" type="success" @click.native.prevent="deleteType(scope.row.id)">delete</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </div>
+            </el-main>
+        </el-container>
+    </el-container>
+</div>
+</body>
+<script type="text/javascript">
+    new Vue({
+        el: '#admin',
+        data: {
+            email:"",
+            dialogVisible5: false,
+            booktypes:[],
+            Customers:[],
+            total:1000,
+            booklists:[],
+            publishDates:"",
+            dialogVisible4: false,
+            typebook:"",
+            dialogVisible3:false,
+            booklist:[],
+            dialogVisible2: false,
+            name:"",
+            author:"",
+            publishDate:"",
+            isbn:"",
+            amount:"",
+            summary:"",
+            dialogVisible1:false,
+            pageValue: 1,
+            gender:"",
+            type:"",
+            options1:[],
+            options:[{
+                value: '0',
+                label: 'male'
+            },{
+                value: '1',
+                label: 'female'
+            }],
+            password:"",
+            username:"",
+            adminName:'',
+            tableData:[],
+            dialogVisible:false,
+            fileList:[],
+            picture:"",
+            bookValue:1,
+            updateid:"",
+            adminId:"",
+            numbers:"",
+            userids:"",
+            borrowId:""
+        },
+        created(){
+            this.borrowId=""
+            this.options1=[]
+            var url = location.search;
+            var theRequest = new Object();
+            if (url.indexOf("?") != -1) {
+                var str = url.substr(1);
+                strs = str.split("&");
+                for (var i = 0; i < strs.length; i++) {
+                    theRequest[strs[i].split("=")[0]] = decodeURIComponent(strs[i].split("=")[1]);
+                }
+            }
+            this.adminId=theRequest["userid"]
+            if(theRequest["userid"]==""){
+                window.location.href="index.html"
+            }else{
+                this.library()
+                axios({
+                    method:"get",
+                    url:"http://localhost/detailAdmin.php",
+                    params:{
+                        id: theRequest["userid"]
+                    }
+                }).then(res=>{
+                    console.log(res.data.name)
+                    this.adminName=res.data.name
+                })
+            }
+        },
+        methods: {
+            returns(id,number){
+
+                this.borrowId=id
+                if(number == "1"){
+                    axios({
+                        method:"get",
+                        url:"http://localhost/returnbook.php",
+                        params : {
+                            id: id,
+                            numbers: number
+                        }
+                    }).then(res=>{
+                        console.log(res)
+                        if (res.data==true) {
+                            this.$message({
+                                message: 'successful',
+                                type: 'success'
+                            });
+                            this.record()
+                        }else{
+                            this.$message.error('failed');
+                        }
+                    })
+                }else{
+                    this.dialogVisible5=true
+                }
+            },
+            addbook(){
+                this.dialogVisible2=true
+            },
+            updatess(){
+                let forms = new FormData()
+                forms.append('id', this.updateid)
+                forms.append('name', this.name)
+                forms.append('author', this.author)
+                forms.append('publishDate', this.publishDate)
+                forms.append('isbn', this.isbn)
+                forms.append('amount', this.amount)
+                forms.append('type', this.type)
+                forms.append('summary', this.summary)
+                forms.append('picture', this.picture)
+                axios({
+                    method:"POST",
+                    url:"http://localhost/updatebook.php",
+                    data: forms,
+                    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+                }).then(res=>{
+                    if (res.data=="true") {
+                        this.$message({
+                            message: 'successful',
+                            type: 'success'
+                        });
+                        this.picture=""
+                        this.dialogVisible4 = false
+                        this.getMessagesList1(this.bookValue)
+                    }else{
+                        this.$message.error('failed');
+                    }
+                })
+            },
+            oktype(){
+                axios({
+                    method:"get",
+                    url:"http://localhost/addbookType.php",
+                    params : {
+                        name: this.typebook
+                    }
+                }).then(res=>{
+                    if(res.data=="true"){
+                        this.$message({
+                            message: 'successful',
+                            type: 'success'
+                        });
+                    }else{
+                        this.$message({
+                            message: 'fail',
+                            type: 'error'
+                        });
+                    }
+                    this.dialogVisible3=false
+                    this.library()
+                })
+            },
+            getMessagesList1(val){
+                var pageValue=val-1
+
+                axios({
+                    method:"get",
+                    url:"http://localhost/listBook.php",
+                    params : {
+                        page: pageValue*10,
+                        pagesize: 10
+                    }
+                }).then(res=>{
+                    console.log(res.data)
+                    this.booklist=res.data
+                })
+            },
+            changebook(val){
+                this.bookValue=val
+                this.getMessagesList1(val)
+            },
+            update(id){
+                this.updateid=id
+                axios({
+                    method:"get",
+                    url:"http://localhost/deatilBook.php?id="+id,
+                }).then(res=>{
+                    console.log(res.data.publish_date)
+                    this.name=res.data.name;
+                    this.amount=res.data.amount;
+                    this.isbn=res.data.isbn;
+                    this.author=res.data.author;
+                    this.publishDates=res.data.publish_date;
+                    this.type=res.data.type;
+                    this.summary=res.data.summary;
+                })
+                this.dialogVisible4=true
+            },
+            deletedbook(index){
+                axios({
+                    method:"get",
+                    url:"http://localhost/deletebook.php?id="+index,
+                }).then(res=>{
+                    console.log(res.data)
+                    if(res.data=="true"){
+                        this.$message({
+                            message: 'successful',
+                            type: 'success'
+                        });
+                        this.getMessagesList1(this.bookValue)
+                    }else{
+                        this.$message({
+                            message: 'fail',
+                            type: 'error'
+                        });
+                    }
+                })
+            },
+            getBase64(file) {
+                return new Promise(function(resolve, reject) {
+                    let reader = new FileReader();
+                    let imgResult = "";
+                    reader.readAsDataURL(file);
+                    reader.onload = function() {
+                        imgResult = reader.result;
+                    };
+                    reader.onerror = function(error) {
+                        reject(error);
+                    };
+                    reader.onloadend = function() {
+                        resolve(imgResult);
+                    };
+                });
+            },
+            getFile(file, fileList) {
+                this.getBase64(file.raw).then((res) => {
+                    console.log(res)
+                    this.picture=res
+                });
+            },
+            handleRemove(file, fileList) {
+                console.log(file, fileList);
+            },
+            handlePreview(file) {
+                console.log(file);
+            },
+            successful(val){
+                alert(val)
+            },
+            book(){
+                let forms = new FormData()
+                forms.append('name', this.name)
+                forms.append('author', this.author)
+                forms.append('publishDate', this.publishDate)
+                forms.append('isbn', this.isbn)
+                forms.append('amount', this.amount)
+                forms.append('type', this.type)
+                forms.append('summary', this.summary)
+                forms.append('picture', this.picture)
+                axios({
+                    method:"POST",
+                    url:"http://localhost/addbooks.php",
+                    data: forms,
+                    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+                }).then(res=>{
+                    if (res.data=="true") {
+                        this.$message({
+                            message: 'successful',
+                            type: 'success'
+                        });
+                        window.location.href="admin.html?userid="+this.adminId
+                        this.dialogVisible2 = false
+                        this.library()
+                    }else{
+                        this.$message.error('failed');
+                    }
+                })
+            },
+            ok1(){
+                axios({
+                    method:"get",
+                    url:"http://localhost/updateUser.php",
+                    params:{
+                        id: this.userids,
+                        email: this.email,
+                        password: this.password,
+                        gender: this.gender,
+                        IsAtive: "1"
+                    }
+                }).then(res=>{
+                    if (res.data=="true") {
+                        this.$message({
+                            message: 'successful',
+                            type: 'success'
+                        });
+                        this.dialogVisible1 = false
+                        this.users()
+                    }else{
+                        this.$message.error('failed');
+                    }
+                })
+            },
+            updates(id){
+                this.userids=id
+                this.dialogVisible1=true
+            },
+            deleted(index){
+                axios({
+                    method:"get",
+                    url:"http://localhost/deleteUser.php?id="+index,
+                }).then(res=>{
+                    console.log(res.data)
+                    if(res.data=="true"){
+                        this.$message({
+                            message: 'successful',
+                            type: 'success'
+                        });
+                        this.getMessagesList(this.pageValue)
+                    }else{
+                        this.$message({
+                            message: 'fail',
+                            type: 'error'
+                        });
+                    }
+                })
+            },
+            getMessagesList(val){
+                var pageValue=val-1
+                axios({
+                    method:"get",
+                    url:"http://localhost/listUser.php",
+                    params : {
+                        page: pageValue*10,
+                        pagesize: 10
+                    }
+                }).then(res=>{
+                    console.log(res.data)
+                    res.data.forEach(res=>{
+                        if(res.gender==0){
+                            res.gender="male"
+                        }else{
+                            res.gender="female"
+                        }
+                    })
+                    this.tableData=res.data
+                })
+            },
+            change(val){
+                console.log("currentChange", val);
+                this.pageValue=val
+                this.getMessagesList(val)
+            },
+            Shortest(){
+                axios({
+                    method:"get",
+                    url:"http://localhost/desbook.php"
+                }).then(res=>{
+                    console.log(res)
+                    this.$message({
+                        message: 'successful',
+                        type: 'success'
+                    });
+                    this.booklists=[]
+                    this.booklists=res.data
+
+                })
+            },
+            Longest(){
+                axios({
+                    method:"get",
+                    url:"http://localhost/asebook.php",
+                }).then(res=>{
+                    console.log(res)
+                    this.$message({
+                        message: 'successful',
+                        type: 'success'
+                    });
+                    this.booklists=[]
+                    this.booklists=res.data
+
+                })
+            },
+            deleteType(id){
+
+                axios({
+                    method:"get",
+                    url:"http://localhost/deletebookType.php",
+                    params : {
+                        id: id,
+                    }
+                }).then(res=>{
+                    this.$message({
+                        message: 'successful',
+                        type: 'success'
+                    });
+                    this.bookType()
+                })
+            },
+            Return(id){
+                axios({
+                    method:"get",
+                    url:"http://localhost/returnbook.php",
+                    params : {
+                        id: this.borrowId,
+                        numbers:this.numbers
+                    }
+                }).then(res=>{
+                    this.dialogVisible5=false
+                    console.log(res)
+                    if (res.data==true) {
+                        this.$message({
+                            message: 'successful',
+                            type: 'success'
+                        });
+                        this.record()
+                    }else{
+                        this.$message.error('failed');
+                    }
+                })
+            },
+            ok(){
+                axios({
+                    method:"get",
+                    url:"http://localhost/registerUser.php",
+                    params:{
+                        username: this.username,
+                        password: this.password,
+                        gender: this.gender,
+                        IsAtive: "1"
+                    }
+                }).then(res=>{
+                    if (res.data=="true") {
+                        this.$message({
+                            message: 'successful',
+                            type: 'success'
+                        });
+                        this.dialogVisible = false
+                        this.users()
+                    }else{
+                        this.$message.error('failed');
+                    }
+                })
+            },
+            library(){
+                this.options1=[]
+                axios({
+                    method:"get",
+                    url:"http://localhost/bookType.php",
+                }).then(res=>{
+                    console.log(res.data)
+                    res.data.map(res=>{
+                        this.options1.push({value:res.id,label:res.name})
+                    })
+                })
+                document.getElementById("bookType").style.display = "none";
+                document.getElementById("record").style.display = "none";
+                document.getElementById("library").style.display = "";
+                document.getElementById("user1").style.display = "none";
+                axios({
+                    method:"get",
+                    url:"http://localhost/listBook.php",
+                    params : {
+                        page: 0,
+                        pagesize: 10
+                    }
+                }).then(res=>{
+                    console.log(res.data)
+                    console.log(res.data)
+                    this.booklist=res.data
+                })
+            },
+            bookType(){
+                this.booktypes=[]
+                axios({
+                    method:"get",
+                    url:"http://localhost/bookType.php"
+                }).then(res=>{
+                    this.booktypes=res.data
+                })
+                document.getElementById("bookType").style.display = "";
+                document.getElementById("Customer").style.display = "none";
+                document.getElementById("library").style.display = "none";
+                document.getElementById("user1").style.display = "none";
+                document.getElementById("record").style.display = "none";
+
+            },
+            Customer(){
+
+                axios({
+                    method:"get",
+                    url:"http://localhost/Customers.php"
+                }).then(res=>{
+                    this.Customers=res.data
+                })
+                document.getElementById("bookType").style.display = "none";
+                document.getElementById("Customer").style.display = "";
+                document.getElementById("library").style.display = "none";
+                document.getElementById("user1").style.display = "none";
+                document.getElementById("record").style.display = "none";
+            },
+            record(){
+                document.getElementById("bookType").style.display = "none";
+                document.getElementById("Customer").style.display = "none";
+                document.getElementById("library").style.display = "none";
+                document.getElementById("user1").style.display = "none";
+                document.getElementById("record").style.display = "";
+                axios({
+                    method:"get",
+                    url:"http://localhost/listRecord.php"
+                }).then(res=>{
+                    axios({
+                        method:"get",
+                        url:"http://localhost/bookType.php"
+                    }).then(data=>{
+                        res.data.map(res=>{
+                            data.data.map(res1=>{
+                                if(res.type==res1.id){
+                                    res.type=res1.name
+                                }
+                            })
+                        })
+                       this.booklists=res.data
+                    })
+                })
+            },
+            users(){
+                document.getElementById("bookType").style.display = "none";
+                document.getElementById("Customer").style.display = "none";
+                document.getElementById("record").style.display = "none";
+                document.getElementById("library").style.display = "none";
+                document.getElementById("user1").style.display = "";
+                axios({
+                    method:"get",
+                    url:"http://localhost/listUser.php",
+                    params : {
+                        page: 0,
+                        pagesize: 10
+                    }
+                }).then(res=>{
+                    console.log(res.data)
+                    res.data.forEach(res=>{
+                        if(res.gender==0){
+                            res.gender="male"
+                        }else{
+                            res.gender="female"
+                        }
+                    })
+                    this.tableData=res.data
+                })
+            }
+        }
+    })
+</script>
+</html>
